@@ -31,19 +31,19 @@ public:
     explicit SerialObj(QObject *parent = 0);
 
 signals:
-    void serialIsOpen(const bool& isOpen);
+    void serialIsOpen(const bool &isOpen);
     void log(const QString &msg, SHOW_MSG index);
 
 public slots:
     void init();
-    void setSerialPrefixSuffix(const QString& prefix, const QString& suffix);
+    void setSerialPrefixSuffix(const QString &prefix, const QString &suffix);
     void openSerial(SerialPar serialPar);
     void closeSerial();
     void sendSerialData(QString strSendMsg);
-    void setCommFileName(const QString& fileName);
-    void setTimingFileName(const QString& fileName);
-    void setIniFileName(const QString& fileName);
-    void serialReadReady();
+    void setCommFileName(const QString &fileName);
+    void setTimingFileName(const QString &fileName);
+    void setIniFileName(const QString &fileName);
+    void serialReadyRead();
     void serialError(QString &errorMsg);
 
 private:

@@ -18,7 +18,7 @@ void SerialObj::init()
     m_strCommFileName = "";
     m_strTimingFileName = "";
     m_strIniFileName = "";
-    connect(m_pSerialPort,&SerialPortObj::serialReadReady,this,&SerialObj::serialReadReady);
+    connect(m_pSerialPort,&SerialPortObj::serialReadyRead,this,&SerialObj::serialReadyRead);
     connect(m_pSerialPort,&SerialPortObj::serialError,this,&SerialObj::serialError);
 }
 void SerialObj::setSerialPrefixSuffix(const QString &prefix, const QString &suffix)
@@ -150,7 +150,7 @@ void SerialObj::checkMsgForRet(QString &msg, int &sleepTime)
         sleepTime = 0;
     }
 }
-void SerialObj::serialReadReady()
+void SerialObj::serialReadyRead()
 {
     QString readString;
     m_pSerialPort->serialPortRead(readString,m_strPrefix,m_strSuffix);

@@ -18,17 +18,17 @@ public:
     ~MainWindow();
 
 signals:
-    void setSerialPrefixSuffix(const QString& prefix, const QString& suffix);
+    void setSerialPrefixSuffix(const QString &prefix, const QString &suffix);
     void openSerial(SerialPar serialPar);
     void closeSerial();
     void sendSerialData(QString strSendMsg);
-    void setCommFileName(const QString& fileName);
-    void setTimingFileName(const QString& fileName);
-    void setIniFileName(const QString& fileName);
+    void setCommFileName(const QString &fileName);
+    void setTimingFileName(const QString &fileName);
+    void setIniFileName(const QString &fileName);
 
 public slots:
     void log(const QString &msg, SHOW_MSG index);
-    void serialIsOpen(const bool& isOpen);
+    void serialIsOpen(const bool &isOpen);
 
 private slots:
     void on_pushButton_refresh_clicked();
@@ -60,7 +60,7 @@ private:
 
     void init();
     void getPortName();
-    void saveLog(QString& msg);
+    void saveLog(QString &msg);
 };
 
 #endif // MAINWINDOW_H

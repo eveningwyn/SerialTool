@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QSerialPort>
 #include <QSerialPortInfo>
+#include <QString>
+#include <QTimer>
 
 class SerialPortObj : public QObject
 {
@@ -24,16 +26,20 @@ public:
     void getPortName(QList<QSerialPortInfo> &portInfoList);
 
 signals:
-    void serialReadReady();
+    void serialReadyRead();
     void serialError(QString &errorMsg);
 
 public slots:
+    void setSerialReadTimeoutTime(const int &msec);
 
 private slots:
+    void serialReadTimeout();
 
 private:
     QSerialPort *serial;
-    QByteArray byteRead;    //存取串口读取的全部数据
+    QByteArray byteReadBuffer;    //存取串口读取的全部数据
+    QTimer *m_pReadTimer;
+    int m_iReadTimeout;
 
     void setPortName(const QString &portName);
     void setBaudRate(int &baudRate);

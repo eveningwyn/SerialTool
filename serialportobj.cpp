@@ -1,13 +1,15 @@
 ﻿#include "serialportobj.h"
-#include <QString>
-#include <QMessageBox>
-//#include "language.h"
 
+#define READ_TIME 10
 SerialPortObj::SerialPortObj(QObject *parent) : QObject(parent)
 {
     serial = new QSerialPort(this);
-    byteRead = "";
-    connect(serial,SIGNAL(readyRead()),this,SIGNAL(serialReadReady()));
+    byteReadBuffer = "";
+    m_pReadTimer = new QTimer(this);
+    m_iReadTimeout = READ_TIME;
+
+    connect(serial,&QSerialPort::readyRead,this,&SerialPortObj::serialReadyRead);
+    connect(m_pReadTimer,&QTimer::timeout,this,&SerialPortObj::serialReadTimeout);
 }
 
 SerialPortObj::~SerialPortObj()
@@ -169,49 +171,61 @@ void SerialPortObj::serialPortRead(QString &readString, QString &prefix, QString
     {
         return;
     }
+    QByteArray byteBuf;     //接收数据缓冲区
+    byteBuf = serial->readAll();
+    byteReadBuffer.append(byteBuf);
+    if(!m_pReadTimer->isActive())
+    {
+        m_pReadTimer->start(m_iReadTimeout);
+    }
+
+    //如果无前缀无后缀，直接读取返回
     if(prefix.isEmpty() && suffix.isEmpty())
-    {//如果无前缀无后缀，直接读取返回
-        byteRead = serial->readAll();
-        readString = QString(byteRead);
-        byteRead = "";
+    {
+//        byteReadBuffer = serial->readAll();
+        readString = QString(byteReadBuffer);
+        serialReadTimeout();
         return;
     }
     QByteArray pre = prefix.toLatin1();     //获得前缀
     QByteArray suf = suffix.toLatin1();     //获得后缀
-    QByteArray byteBuf;     //接收数据缓冲区
-
-    byteBuf = serial->readAll();
-    byteRead.append(byteBuf);
     /*判断是否接收完毕*/
+    //如果有前缀无后缀
     if(!prefix.isEmpty() && suffix.isEmpty())
-    {   //如果有前缀无后缀
-        if(byteRead.contains(pre))
+    {
+//        if(byteReadBuffer.contains(pre))
+        if(0 == byteReadBuffer.indexOf(pre))
         {
-            readString = QString(byteRead);
-            byteRead = "";
+            readString = QString(byteReadBuffer);
+            serialReadTimeout();
             return;
         }
     }
     else
+    {//如果无前缀有后缀
         if(prefix.isEmpty() && !suffix.isEmpty())
-        {   //如果无前缀有后缀
-            if(byteRead.contains(suf))
+        {
+            if(byteReadBuffer.size() == byteReadBuffer.lastIndexOf(suf) + suf.size())
             {
-                readString = QString(byteRead);
-                byteRead = "";
+                readString = QString(byteReadBuffer);
+                serialReadTimeout();
                 return;
             }
         }
         else
+        {//如果有前缀有后缀
             if(!prefix.isEmpty() && !suffix.isEmpty())
-            {   //如果有前缀有后缀
-                if(byteRead.contains(pre) && byteRead.contains(suf))
+            {
+                if(0 == byteReadBuffer.indexOf(pre)
+                        && byteReadBuffer.size() == byteReadBuffer.lastIndexOf(suf) + suf.size())
                 {
-                    readString = QString(byteRead);
-                    byteRead = "";
+                    readString = QString(byteReadBuffer);
+                    serialReadTimeout();//关闭超时定时器，并清空缓存
                     return;
                 }
             }
+        }
+    }
     byteBuf.clear();
 }
 
@@ -232,4 +246,22 @@ bool SerialPortObj::serialIsOpen()
 void SerialPortObj::getPortName(QList<QSerialPortInfo> &portInfoList)
 {
     portInfoList = QSerialPortInfo::availablePorts();
+}
+
+void SerialPortObj::serialReadTimeout()
+{
+    if(m_pReadTimer->isActive())
+    {
+        m_pReadTimer->stop();
+    }
+    byteReadBuffer = "";
+}
+
+void SerialPortObj::setSerialReadTimeoutTime(const int &msec)
+{
+    m_iReadTimeout = msec;
+    if(READ_TIME > m_iReadTimeout)//超时时间定义为不小于预设时间(ms)
+    {
+        m_iReadTimeout = READ_TIME;
+    }
 }

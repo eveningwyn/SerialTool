@@ -7,8 +7,8 @@
 #include <QSettings>
 #include <QMessageBox>
 
-#define PRO_VERSION "V1.00"
-#define BUILT_DATE "2017-07-01"
+#define PRO_VERSION "V1.01"
+#define BUILT_DATE "2017-07-02"
 void MainWindow::on_actionAbout_triggered()
 {
     QMessageBox::about(this,NULL,QString(tr("\nVersion: %1\n"
@@ -82,10 +82,10 @@ void MainWindow::log(const QString &msg, SHOW_MSG index)
     QString strMsgPre;
     switch (index) {
     case SHOW_SENDER:
-        strMsgPre = "Send to";
+        strMsgPre = "Send";
         break;
     case SHOW_RECEIVE:
-        strMsgPre = "Receive from";
+        strMsgPre = "Receive";
         break;
     case SHOW_NULL:
         strMsgPre = "";

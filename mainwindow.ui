@@ -13,10 +13,6 @@
   <property name="windowTitle">
    <string>Serial_Tool</string>
   </property>
-  <property name="windowIcon">
-   <iconset resource="resource.qrc">
-    <normaloff>:/res/serial_tasks_128px_1101993_easyicon.net.png</normaloff>:/res/serial_tasks_128px_1101993_easyicon.net.png</iconset>
-  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout_10">
     <item>
@@ -375,8 +371,6 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="resource.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

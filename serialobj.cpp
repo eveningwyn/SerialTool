@@ -173,7 +173,7 @@ void SerialObj::serialReadyRead()
         }
     }
 }
-void SerialObj::serialError(QString &errorMsg)
+void SerialObj::serialError(const QString &errorMsg)
 {
     emit log(QString(tr("%1").arg(errorMsg)),SHOW_NULL);
 }

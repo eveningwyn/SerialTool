@@ -12,7 +12,7 @@
     #else
         QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
     #endif
-#endif  
+#endif
 
 
 #endif // LANGUAGE_H

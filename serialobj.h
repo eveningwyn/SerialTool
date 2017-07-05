@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include "serialportobj.h"
-#include "language.h"
+//#include "language.h"
 #include <QMetaType>
 #include <QEvent>
 
@@ -44,7 +44,7 @@ public slots:
     void setTimingFileName(const QString &fileName);
     void setIniFileName(const QString &fileName);
     void serialReadyRead();
-    void serialError(QString &errorMsg);
+    void serialError(const QString &errorMsg);
 
 private:
     SerialPortObj *m_pSerialPort;

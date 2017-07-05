@@ -27,7 +27,7 @@ public:
 
 signals:
     void serialReadyRead();
-    void serialError(QString &errorMsg);
+    void serialError(const QString &errorMsg);
 
 public slots:
     void setSerialReadTimeoutTime(const int &msec);

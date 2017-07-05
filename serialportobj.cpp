@@ -50,7 +50,7 @@ void SerialPortObj::setBaudRate(int &baudRate)      //配置波特率
         serial->setBaudRate(QSerialPort::Baud1200,QSerialPort::AllDirections);
         break;
     default:
-        emit serialError(tr("BaudRate Error!\n"));
+        emit serialError((tr("BaudRate Error!\n")));
         break;
     }
 }

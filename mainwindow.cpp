@@ -7,8 +7,8 @@
 #include <QSettings>
 #include <QMessageBox>
 
-#define PRO_VERSION "V1.01"
-#define BUILT_DATE "2017-07-02"
+#define PRO_VERSION "V1.01a"
+#define BUILT_DATE "2017-07-05"
 void MainWindow::on_actionAbout_triggered()
 {
     QMessageBox::about(this,NULL,QString(tr("\nVersion: %1\n"

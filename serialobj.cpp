@@ -12,7 +12,6 @@ SerialObj::SerialObj(QObject *parent) : QObject(parent)
 }
 SerialObj::~SerialObj()
 {
-
 }
 void SerialObj::init()
 {
@@ -128,18 +127,17 @@ void SerialObj::checkTimerMsg(QString sendMsg)
 void SerialObj::timerEvent(QTimerEvent *event)
 {
     QString strTimerID = QString("%1").arg(event->timerId());
-    if(!m_map.contains(strTimerID))
+    if(m_map.contains(strTimerID))
     {
-        return;
-    }
-    QString strSendMsg = m_map[strTimerID];
-    if(!strSendMsg.isEmpty() && m_pSerialPort->serialIsOpen())
-    {
-        strSendMsg = QString("%1%2%3")
-                .arg(m_strPrefix).arg(strSendMsg).arg(m_strSuffix);
-        m_pSerialPort->serialPortWrite(strSendMsg);
-        emit log(strSendMsg,SHOW_SENDER);
-        checkTimerMsg(strSendMsg);
+        QString strSendMsg = m_map[strTimerID];
+        if(!strSendMsg.isEmpty() && m_pSerialPort->serialIsOpen())
+        {
+            strSendMsg = QString("%1%2%3")
+                    .arg(m_strPrefix).arg(strSendMsg).arg(m_strSuffix);
+            m_pSerialPort->serialPortWrite(strSendMsg);
+            emit log(strSendMsg,SHOW_SENDER);
+            checkTimerMsg(strSendMsg);
+        }
     }
     this->killTimer(event->timerId());
 }

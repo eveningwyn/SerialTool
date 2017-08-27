@@ -8,7 +8,7 @@
 #include <QMessageBox>
 #include "language.h"
 
-#define PRO_VERSION "V1.03"
+#define PRO_VERSION "V1.03a"
 #define BUILT_DATE "2017-08-27"
 void MainWindow::on_actionAbout_triggered()
 {

@@ -29,6 +29,7 @@ class SerialObj : public QObject
     Q_OBJECT
 public:
     explicit SerialObj(QObject *parent = 0);
+    ~SerialObj();
 
 signals:
     void serialIsOpen(const bool &isOpen);
@@ -45,6 +46,8 @@ public slots:
     void setIniFileName(const QString &fileName);
     void serialReadyRead();
     void serialError(const QString &errorMsg);
+    void setRegExpPattern(const QString &split);
+    void removeFile();
 
 private:
     SerialPortObj *m_pSerialPort;
@@ -52,7 +55,8 @@ private:
     QString m_strSuffix;
     QString m_strCommFileName;
     QString m_strTimingFileName;
-    QString m_strIniFileName;
+    QString m_strIniFileName;    
+    QString m_sPattern;
     void checkTimerMsg(QString sendMsg);
     void checkMsgForRet(QString &msg, int &sleepTime);
 

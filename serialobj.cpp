@@ -4,11 +4,16 @@
 #include <QRegExp>
 #include <QSettings>
 #include <QThread>
+#include "language.h"
 
 SerialObj::SerialObj(QObject *parent) : QObject(parent)
 {
     qRegisterMetaType<SerialPar>("SerialPar");//注册SerialPar类型
     qRegisterMetaType<SHOW_MSG>("SHOW_MSG");//注册SHOW_MSG类型
+}
+SerialObj::~SerialObj()
+{
+    removeFile();
 }
 void SerialObj::init()
 {
@@ -20,6 +25,29 @@ void SerialObj::init()
     m_strIniFileName = "";
     connect(m_pSerialPort,&SerialPortObj::serialReadyRead,this,&SerialObj::serialReadyRead);
     connect(m_pSerialPort,&SerialPortObj::serialError,this,&SerialObj::serialError);
+}
+void SerialObj::setCommFileName(const QString &fileName)
+{
+    m_strCommFileName = fileName;
+}
+void SerialObj::setTimingFileName(const QString &fileName)
+{
+    m_strTimingFileName = fileName;
+}
+void SerialObj::setIniFileName(const QString &fileName)
+{
+    if(fileName.isEmpty())
+    {
+        QFile::remove(m_strIniFileName);
+    }
+    m_strIniFileName = fileName;
+}
+void SerialObj::setRegExpPattern(const QString &split)
+{
+    if(!split.isEmpty())
+    {
+        m_sPattern = QString("(.*)%1(.*)%2(.*)").arg(split).arg(split);
+    }
 }
 void SerialObj::setSerialPrefixSuffix(const QString &prefix, const QString &suffix)
 {
@@ -36,11 +64,7 @@ void SerialObj::openSerial(SerialPar serialPar)
                                                  serialPar.setDTR,
                                                  serialPar.setRTS);
     emit serialIsOpen(bIsOpen);
-}
-void SerialObj::closeSerial()
-{
-    m_pSerialPort->closeSerialPort();
-    emit serialIsOpen(false);
+    removeFile();
 }
 void SerialObj::sendSerialData(QString strSendMsg)
 {
@@ -57,17 +81,28 @@ void SerialObj::sendSerialData(QString strSendMsg)
         }
     }
 }
-void SerialObj::setCommFileName(const QString &fileName)
+void SerialObj::serialReadyRead()
 {
-    m_strCommFileName = fileName;
-}
-void SerialObj::setTimingFileName(const QString &fileName)
-{
-    m_strTimingFileName = fileName;
-}
-void SerialObj::setIniFileName(const QString &fileName)
-{
-    m_strIniFileName = fileName;
+    QString readString;
+    m_pSerialPort->serialPortRead(readString,m_strPrefix,m_strSuffix);
+    if(readString.isEmpty())
+        return;
+    emit log(readString,SHOW_RECEIVE);
+    if(!m_strCommFileName.isEmpty())
+    {
+        int iSleepTime = 0;
+        checkMsgForRet(readString,iSleepTime);
+        if(!readString.isEmpty())
+        {
+            QThread::msleep(iSleepTime);
+            QString strSendMsg = QString("%1%2%3")
+                    .arg(m_strPrefix).arg(readString).arg(m_strSuffix);
+            m_pSerialPort->serialPortWrite(strSendMsg);
+            emit log(strSendMsg,SHOW_SENDER);
+            if(!m_strTimingFileName.isEmpty())
+                checkTimerMsg(strSendMsg);
+        }
+    }
 }
 void SerialObj::checkTimerMsg(QString sendMsg)
 {
@@ -77,7 +112,7 @@ void SerialObj::checkTimerMsg(QString sendMsg)
     {
         QTextStream txtInput(&msgFile);
         QString strLine;
-        QRegExp msgRE("(.*),(.*),(.*)");
+        QRegExp msgRE(m_sPattern);
         while(!txtInput.atEnd())
         {
             strLine = txtInput.readLine();
@@ -107,12 +142,13 @@ void SerialObj::timerEvent(QTimerEvent *event)
     QSettings *configRead = new QSettings(m_strIniFileName, QSettings::IniFormat);
     QString strSendMsg = configRead->value(strTimerID).toString();
     delete configRead;
-    if(!strSendMsg.isEmpty())
+    if(!strSendMsg.isEmpty() && m_pSerialPort->serialIsOpen())
     {
         strSendMsg = QString("%1%2%3")
                 .arg(m_strPrefix).arg(strSendMsg).arg(m_strSuffix);
         m_pSerialPort->serialPortWrite(strSendMsg);
         emit log(strSendMsg,SHOW_SENDER);
+        checkTimerMsg(strSendMsg);
     }
     this->killTimer(event->timerId());
 }
@@ -125,7 +161,7 @@ void SerialObj::checkMsgForRet(QString &msg, int &sleepTime)
     {
         QTextStream txtInput(&msgFile);
         QString strLine;
-        QRegExp msgRE("(.*),(.*),(.*)");
+        QRegExp msgRE(m_sPattern);
         while(!txtInput.atEnd())
         {
             strLine = txtInput.readLine();
@@ -150,30 +186,20 @@ void SerialObj::checkMsgForRet(QString &msg, int &sleepTime)
         sleepTime = 0;
     }
 }
-void SerialObj::serialReadyRead()
-{
-    QString readString;
-    m_pSerialPort->serialPortRead(readString,m_strPrefix,m_strSuffix);
-    if(readString.isEmpty())
-        return;
-    emit log(readString,SHOW_RECEIVE);
-    if(!m_strCommFileName.isEmpty())
-    {
-        int iSleepTime = 0;
-        checkMsgForRet(readString,iSleepTime);
-        if(!readString.isEmpty())
-        {
-            QThread::msleep(iSleepTime);
-            QString strSendMsg = QString("%1%2%3")
-                    .arg(m_strPrefix).arg(readString).arg(m_strSuffix);
-            m_pSerialPort->serialPortWrite(strSendMsg);
-            emit log(strSendMsg,SHOW_SENDER);
-            if(!m_strTimingFileName.isEmpty())
-                checkTimerMsg(strSendMsg);
-        }
-    }
-}
 void SerialObj::serialError(const QString &errorMsg)
 {
     emit log(QString(tr("%1").arg(errorMsg)),SHOW_NULL);
+}
+void SerialObj::closeSerial()
+{
+    m_pSerialPort->closeSerialPort();
+    emit serialIsOpen(false);
+    removeFile();
+}
+void SerialObj::removeFile()
+{
+    if(!m_strIniFileName.isEmpty())
+    {
+        QFile::remove(m_strIniFileName);
+    }
 }

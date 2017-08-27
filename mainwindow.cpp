@@ -6,13 +6,15 @@
 #include <QFileDialog>
 #include <QSettings>
 #include <QMessageBox>
+#include "language.h"
 
-#define PRO_VERSION "V1.01a"
-#define BUILT_DATE "2017-07-05"
+#define PRO_VERSION "V1.02"
+#define BUILT_DATE "2017-08-27"
 void MainWindow::on_actionAbout_triggered()
 {
     QMessageBox::about(this,NULL,QString(tr("\nVersion: %1\n"
-                                                "\nBuilt on %2\n"))
+                                            "\nBuilt on %2\n"
+                                            "\n\t---evening.wen\n"))
                            .arg(PRO_VERSION).arg(BUILT_DATE));
 }
 MainWindow::MainWindow(QWidget *parent) :
@@ -20,7 +22,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    init();
 
     m_pSerial = new SerialObj;
     m_pThread = new QThread;
@@ -32,11 +33,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this,&MainWindow::setCommFileName,m_pSerial,&SerialObj::setCommFileName);
     connect(this,&MainWindow::setTimingFileName,m_pSerial,&SerialObj::setTimingFileName);
     connect(this,&MainWindow::setIniFileName,m_pSerial,&SerialObj::setIniFileName);
+    connect(ui->comboBox_split,&QComboBox::currentTextChanged,m_pSerial,&SerialObj::setRegExpPattern);
 
     connect(m_pSerial,&SerialObj::serialIsOpen,this,&MainWindow::serialIsOpen);
     connect(m_pSerial,&SerialObj::log,this,&MainWindow::log);
 
     connect(m_pThread,&QThread::started,m_pSerial,&SerialObj::init);
+
+    init();
 
     m_pSerial->moveToThread(m_pThread);
     m_pThread->start();
@@ -44,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    m_pSerial->removeFile();
     delete ui;
 }
 
@@ -54,6 +59,7 @@ void MainWindow::init()
     m_strSuffix = "";
     getPortName();
     m_bSerialIsOpen = false;
+    ui->comboBox_split->setCurrentIndex(1);
 }
 
 void MainWindow::getPortName()

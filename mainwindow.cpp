@@ -8,7 +8,7 @@
 #include <QMessageBox>
 #include "language.h"
 
-#define PRO_VERSION "V1.02"
+#define PRO_VERSION "V1.03"
 #define BUILT_DATE "2017-08-27"
 void MainWindow::on_actionAbout_triggered()
 {
@@ -32,7 +32,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this,&MainWindow::sendSerialData,m_pSerial,&SerialObj::sendSerialData);
     connect(this,&MainWindow::setCommFileName,m_pSerial,&SerialObj::setCommFileName);
     connect(this,&MainWindow::setTimingFileName,m_pSerial,&SerialObj::setTimingFileName);
-    connect(this,&MainWindow::setIniFileName,m_pSerial,&SerialObj::setIniFileName);
     connect(ui->comboBox_split,&QComboBox::currentTextChanged,m_pSerial,&SerialObj::setRegExpPattern);
 
     connect(m_pSerial,&SerialObj::serialIsOpen,this,&MainWindow::serialIsOpen);
@@ -48,7 +47,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    m_pSerial->removeFile();
     delete ui;
 }
 
@@ -67,7 +65,7 @@ void MainWindow::getPortName()
     QList<QSerialPortInfo> portInfoList = QSerialPortInfo::availablePorts();
     if(portInfoList.isEmpty())
     {
-        //        ui->comboBox_portName->addItem("None");
+//        ui->comboBox_portName->addItem("None");
         return;
     }
     foreach (QSerialPortInfo info, portInfoList)
@@ -262,19 +260,11 @@ void MainWindow::on_pushButton_loadTimerFile_clicked()
                                                        tr("Text Files (*.txt)"));
     if(!timerFileName.isEmpty())
     {
-        QString iniFileName = QFileDialog::getSaveFileName(this,NULL,"ForTiming.ini",tr("ini Files (*.ini)"));
-        if(!iniFileName.isEmpty())
-        {
-            log(tr("加载定时文件 %1成功!").arg(timerFileName),SHOW_NULL);
-            QSettings *configWrite = new QSettings(iniFileName, QSettings::IniFormat);
-            configWrite->clear();
-            delete configWrite;
-            emit setTimingFileName(timerFileName);
-            emit setIniFileName(iniFileName);
-            return;
-        }
+        log(tr("加载定时文件 %1成功!").arg(timerFileName),SHOW_NULL);
     }
-    emit setTimingFileName("");
-    emit setIniFileName("");
-    log(tr("已取消加载定时文件!"),SHOW_NULL);
+    else
+    {
+        log(tr("已取消加载定时文件!"),SHOW_NULL);
+    }
+    emit setTimingFileName(timerFileName);
 }

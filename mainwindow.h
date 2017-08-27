@@ -24,7 +24,6 @@ signals:
     void sendSerialData(QString strSendMsg);
     void setCommFileName(const QString &fileName);
     void setTimingFileName(const QString &fileName);
-    void setIniFileName(const QString &fileName);
 
 public slots:
     void log(const QString &msg, SHOW_MSG index);

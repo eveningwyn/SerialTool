@@ -2,7 +2,6 @@
 #include <QFile>
 #include <QTextStream>
 #include <QRegExp>
-#include <QSettings>
 #include <QThread>
 #include "language.h"
 
@@ -13,7 +12,7 @@ SerialObj::SerialObj(QObject *parent) : QObject(parent)
 }
 SerialObj::~SerialObj()
 {
-    removeFile();
+
 }
 void SerialObj::init()
 {
@@ -22,7 +21,7 @@ void SerialObj::init()
     m_strSuffix = "";
     m_strCommFileName = "";
     m_strTimingFileName = "";
-    m_strIniFileName = "";
+    m_map.clear();
     connect(m_pSerialPort,&SerialPortObj::serialReadyRead,this,&SerialObj::serialReadyRead);
     connect(m_pSerialPort,&SerialPortObj::serialError,this,&SerialObj::serialError);
 }
@@ -33,14 +32,6 @@ void SerialObj::setCommFileName(const QString &fileName)
 void SerialObj::setTimingFileName(const QString &fileName)
 {
     m_strTimingFileName = fileName;
-}
-void SerialObj::setIniFileName(const QString &fileName)
-{
-    if(fileName.isEmpty())
-    {
-        QFile::remove(m_strIniFileName);
-    }
-    m_strIniFileName = fileName;
 }
 void SerialObj::setRegExpPattern(const QString &split)
 {
@@ -64,7 +55,7 @@ void SerialObj::openSerial(SerialPar serialPar)
                                                  serialPar.setDTR,
                                                  serialPar.setRTS);
     emit serialIsOpen(bIsOpen);
-    removeFile();
+    clearMap();
 }
 void SerialObj::sendSerialData(QString strSendMsg)
 {
@@ -126,9 +117,7 @@ void SerialObj::checkTimerMsg(QString sendMsg)
                     if(!bOk || 0>=iTime)
                         iTime = 1000;
                     QString strID = QString("%1").arg(this->startTimer(iTime));
-                    QSettings *configWrite = new QSettings(m_strIniFileName, QSettings::IniFormat);
-                    configWrite->setValue(strID, msg_temp);
-                    delete configWrite;
+                    m_map[strID] = msg_temp;
                     break;
                 }
             }
@@ -139,9 +128,11 @@ void SerialObj::checkTimerMsg(QString sendMsg)
 void SerialObj::timerEvent(QTimerEvent *event)
 {
     QString strTimerID = QString("%1").arg(event->timerId());
-    QSettings *configRead = new QSettings(m_strIniFileName, QSettings::IniFormat);
-    QString strSendMsg = configRead->value(strTimerID).toString();
-    delete configRead;
+    if(!m_map.contains(strTimerID))
+    {
+        return;
+    }
+    QString strSendMsg = m_map[strTimerID];
     if(!strSendMsg.isEmpty() && m_pSerialPort->serialIsOpen())
     {
         strSendMsg = QString("%1%2%3")
@@ -194,12 +185,14 @@ void SerialObj::closeSerial()
 {
     m_pSerialPort->closeSerialPort();
     emit serialIsOpen(false);
-    removeFile();
+    clearMap();
 }
-void SerialObj::removeFile()
+void SerialObj::clearMap()
 {
-    if(!m_strIniFileName.isEmpty())
+    if(!m_map.isEmpty())
     {
-        QFile::remove(m_strIniFileName);
+        m_map.clear();
     }
+    m_strCommFileName = "";
+    m_strTimingFileName = "";
 }

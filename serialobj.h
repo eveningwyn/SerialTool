@@ -6,6 +6,7 @@
 //#include "language.h"
 #include <QMetaType>
 #include <QEvent>
+#include <QMap>
 
 enum SHOW_MSG
 {
@@ -38,16 +39,14 @@ signals:
 public slots:
     void init();
     void setSerialPrefixSuffix(const QString &prefix, const QString &suffix);
+    void setCommFileName(const QString &fileName);
+    void setTimingFileName(const QString &fileName);
     void openSerial(SerialPar serialPar);
     void closeSerial();
     void sendSerialData(QString strSendMsg);
-    void setCommFileName(const QString &fileName);
-    void setTimingFileName(const QString &fileName);
-    void setIniFileName(const QString &fileName);
     void serialReadyRead();
     void serialError(const QString &errorMsg);
     void setRegExpPattern(const QString &split);
-    void removeFile();
 
 private:
     SerialPortObj *m_pSerialPort;
@@ -55,8 +54,9 @@ private:
     QString m_strSuffix;
     QString m_strCommFileName;
     QString m_strTimingFileName;
-    QString m_strIniFileName;    
     QString m_sPattern;
+    QMap <QString, QString> m_map;
+    void clearMap();
     void checkTimerMsg(QString sendMsg);
     void checkMsgForRet(QString &msg, int &sleepTime);
 
